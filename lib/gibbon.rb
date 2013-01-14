@@ -18,14 +18,14 @@ class Gibbon
     @timeout = default_parameters.delete(:timeout)
     @throws_exceptions = default_parameters.delete(:throws_exceptions)
   
-    @default_params = {apikey: @api_key}.merge(default_parameters)
+    @default_params = {:apikey => @api_key}.merge(default_parameters)
     
     set_instance_defaults
   end
   
   def api_key=(value)
     @api_key = value.strip if value
-    @default_params = @default_params.merge({apikey: @api_key})
+    @default_params = @default_params.merge({:apikey => @api_key})
   end
 
   def get_exporter
@@ -37,7 +37,7 @@ class Gibbon
   def call(method, params = {})
     api_url = base_api_url + method
     params = @default_params.merge(params)
-    response = self.class.post(api_url, body: CGI::escape(params.to_json), timeout: @timeout)
+    response = self.class.post(api_url, :body => CGI::escape(params.to_json), :timeout => @timeout)
     
     # MailChimp API sometimes returns JSON fragments (e.g. true from listSubscribe)
     # so we parse after adding brackets to create a JSON array so 
@@ -85,7 +85,7 @@ class Gibbon
     attr_accessor :api_key, :timeout, :throws_exceptions
 
     def method_missing(sym, *args, &block)
-      new(self.api_key, {timeout: self.timeout, throws_exceptions: self.throws_exceptions}).send(sym, *args, &block)
+      new(self.api_key, {:timeout => self.timeout, :throws_exceptions => self.throws_exceptions}).send(sym, *args, &block)
     end
   end
 
@@ -116,7 +116,7 @@ class GibbonExport < Gibbon
   def call(method, params = {})
     api_url = export_api_url + method + "/"
     params = @default_params.merge(params)
-    response = self.class.post(api_url, body: CGI::escape(params.to_json), timeout: @timeout)
+    response = self.class.post(api_url, :body => CGI::escape(params.to_json), :timeout => @timeout)
 
     lines = response.body.lines
     if @throws_exceptions
